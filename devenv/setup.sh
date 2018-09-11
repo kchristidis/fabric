@@ -96,7 +96,7 @@ sudo chown -R vagrant:vagrant /var/hyperledger
 # filesystem) and then ensure we have a fresh set of our go-tools.
 # NOTE: This must be done before the chown below.
 cd $GOPATH/src/github.com/hyperledger/fabric
-make clean gotools
+make clean configtxgen cryptogen
 
 # Ensure permissions are set for GOPATH
 sudo chown -R vagrant:vagrant $GOPATH
@@ -117,13 +117,8 @@ EOF
 # Also make it so that it cd's the user to the fabric dir upon logging in
 cat <<EOF >> /home/vagrant/.bashrc
 PS1="\u@hyperledger-devenv:$DEVENV_REVISION:\w$ "
-cd $GOPATH/src/github.com/kchristidis/fabric-example/
+cd $GOPATH/src/github.com/kchristidis/exp2/
 EOF
-
-# Work with kchristidis/fabric-example
-cd $GOPATH/src/github.com/hyperledger/fabric
-make docker cryptogen configtxgen
-export PATH=$PATH:$GOPATH/src/github.com/hyperledger/fabric/build/bin
 
 # Finally, remove our warning so the user knows this was successful
 rm /etc/motd

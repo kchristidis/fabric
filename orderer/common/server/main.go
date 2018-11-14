@@ -53,7 +53,9 @@ func init() {
 var (
 	app = kingpin.New("orderer", "Hyperledger Fabric orderer node")
 
-	start     = app.Command("start", "Start the orderer node").Default()
+	start = app.Command("start", "Start the orderer node").Default()
+	reset = start.Flag("reset", "Set to true if you're switching to a new backing Kafka cluster").Envar("RESET").Bool()
+
 	version   = app.Command("version", "Show version information")
 	benchmark = app.Command("benchmark", "Run orderer in benchmark mode")
 )
@@ -178,7 +180,7 @@ func initializeServerConfig(conf *localconfig.TopLevel) comm.ServerConfig {
 		secureOpts.Certificate = serverCertificate
 		secureOpts.ServerRootCAs = serverRootCAs
 		secureOpts.ClientRootCAs = clientRootCAs
-		logger.Infof("Starting orderer with %s enabled", msg)
+		logger.Infof("Starting forked orderer with %s enabled and the reset value set to %t", msg, *reset)
 	}
 	kaOpts := comm.DefaultKeepaliveOptions
 	// keepalive settings

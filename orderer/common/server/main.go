@@ -100,7 +100,7 @@ func Start(cmd string, conf *localconfig.TopLevel) {
 		}
 	}
 
-	manager := initializeMultichannelRegistrar(conf, signer, tlsCallback)
+	manager := initializeMultichannelRegistrar(conf, *reset, signer, tlsCallback)
 	mutualTLS := serverConfig.SecOpts.UseTLS && serverConfig.SecOpts.RequireClientCert
 	server := NewServer(manager, signer, &conf.Debug, conf.General.Authentication.TimeWindow, mutualTLS)
 
@@ -245,7 +245,7 @@ func initializeLocalMsp(conf *localconfig.TopLevel) {
 	}
 }
 
-func initializeMultichannelRegistrar(conf *localconfig.TopLevel, signer crypto.LocalSigner,
+func initializeMultichannelRegistrar(conf *localconfig.TopLevel, reset bool, signer crypto.LocalSigner,
 	callbacks ...func(bundle *channelconfig.Bundle)) *multichannel.Registrar {
 	lf, _ := createLedgerFactory(conf)
 	// Are we bootstrapping?
@@ -257,7 +257,7 @@ func initializeMultichannelRegistrar(conf *localconfig.TopLevel, signer crypto.L
 
 	consenters := make(map[string]consensus.Consenter)
 	consenters["solo"] = solo.New()
-	consenters["kafka"] = kafka.New(conf.Kafka)
+	consenters["kafka"] = kafka.New(conf.Kafka, reset)
 
 	return multichannel.NewRegistrar(lf, consenters, signer, callbacks...)
 }

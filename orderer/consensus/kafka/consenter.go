@@ -15,7 +15,7 @@ import (
 )
 
 // New creates a Kafka-based consenter. Called by orderer's main.go.
-func New(config localconfig.Kafka) consensus.Consenter {
+func New(config localconfig.Kafka, reset bool) consensus.Consenter {
 	if config.Verbose {
 		logging.SetLevel(logging.DEBUG, saramaLogID)
 	}
@@ -25,6 +25,7 @@ func New(config localconfig.Kafka) consensus.Consenter {
 		tlsConfigVal:    config.TLS,
 		retryOptionsVal: config.Retry,
 		kafkaVersionVal: config.Version,
+		reset:           reset,
 	}
 }
 
@@ -36,6 +37,7 @@ type consenterImpl struct {
 	tlsConfigVal    localconfig.TLS
 	retryOptionsVal localconfig.Retry
 	kafkaVersionVal sarama.KafkaVersion
+	reset           bool
 }
 
 // HandleChain creates/returns a reference to a consensus.Chain object for the
@@ -44,7 +46,7 @@ type consenterImpl struct {
 // multichannel.NewManagerImpl() when ranging over the ledgerFactory's
 // existingChains.
 func (consenter *consenterImpl) HandleChain(support consensus.ConsenterSupport, metadata *cb.Metadata) (consensus.Chain, error) {
-	lastOffsetPersisted, lastOriginalOffsetProcessed, lastResubmittedConfigOffset := getOffsets(metadata.Value, support.ChainID())
+	lastOffsetPersisted, lastOriginalOffsetProcessed, lastResubmittedConfigOffset := getOffsets(metadata.Value, consenter.reset, support.ChainID())
 	return newChain(consenter, support, lastOffsetPersisted, lastOriginalOffsetProcessed, lastResubmittedConfigOffset)
 }
 

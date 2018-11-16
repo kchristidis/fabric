@@ -652,26 +652,28 @@ func TestGetLastOffsetPersisted(t *testing.T) {
 	testCases := []struct {
 		name                string
 		md                  []byte
+		reset               bool
 		expectedPersisted   int64
 		expectedProcessed   int64
 		expectedResubmitted int64
 		panics              bool
 	}{
-		{"Proper", mockMetadata.Value, int64(5), int64(3), int64(4), false},
-		{"Empty", nil, sarama.OffsetOldest - 1, int64(0), int64(0), false},
-		{"Panics", tamperBytes(mockMetadata.Value), sarama.OffsetOldest - 1, int64(0), int64(0), true},
+		{"Proper", mockMetadata.Value, false, int64(5), int64(3), int64(4), false},
+		{"ProperReset", mockMetadata.Value, true, sarama.OffsetNewest - 1, int64(0), int64(0), false},
+		{"Empty", nil, false, sarama.OffsetOldest - 1, int64(0), int64(0), false},
+		{"Panics", tamperBytes(mockMetadata.Value), false, sarama.OffsetOldest - 1, int64(0), int64(0), true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			if !tc.panics {
-				persisted, processed, resubmitted := getOffsets(tc.md, mockChannel.String())
+				persisted, processed, resubmitted := getOffsets(tc.md, tc.reset, mockChannel.String())
 				assert.Equal(t, tc.expectedPersisted, persisted)
 				assert.Equal(t, tc.expectedProcessed, processed)
 				assert.Equal(t, tc.expectedResubmitted, resubmitted)
 			} else {
 				assert.Panics(t, func() {
-					getOffsets(tc.md, mockChannel.String())
+					getOffsets(tc.md, tc.reset, mockChannel.String())
 				}, "Expected getOffsets call to panic")
 			}
 		})
@@ -3152,7 +3154,8 @@ func TestDeliverSession(t *testing.T) {
 		defer env.broker2.Close()
 
 		// initialize consenter
-		consenter := New(mockLocalConfig.Kafka)
+		reset := false
+		consenter := New(mockLocalConfig.Kafka, reset)
 
 		// initialize chain
 		metadata := &cb.Metadata{Value: utils.MarshalOrPanic(&ab.KafkaMetadata{LastOffsetPersisted: env.height})}
@@ -3241,7 +3244,8 @@ func TestDeliverSession(t *testing.T) {
 		defer env.broker0.Close()
 
 		// initialize consenter
-		consenter := New(mockLocalConfig.Kafka)
+		reset := false
+		consenter := New(mockLocalConfig.Kafka, reset)
 
 		// initialize chain
 		metadata := &cb.Metadata{Value: utils.MarshalOrPanic(&ab.KafkaMetadata{LastOffsetPersisted: env.height})}
@@ -3303,7 +3307,8 @@ func TestDeliverSession(t *testing.T) {
 		defer env.broker0.Close()
 
 		// initialize consenter
-		consenter := New(mockLocalConfig.Kafka)
+		reset := false
+		consenter := New(mockLocalConfig.Kafka, reset)
 
 		// initialize chain
 		metadata := &cb.Metadata{Value: utils.MarshalOrPanic(&ab.KafkaMetadata{LastOffsetPersisted: env.height})}

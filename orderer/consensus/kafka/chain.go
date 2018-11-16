@@ -465,19 +465,26 @@ func getLastCutBlockNumber(blockchainHeight uint64) uint64 {
 	return blockchainHeight - 1
 }
 
-func getOffsets(metadataValue []byte, chainID string) (persisted int64, processed int64, resubmitted int64) {
-	if metadataValue != nil {
-		// Extract orderer-related metadata from the tip of the ledger first
-		kafkaMetadata := &ab.KafkaMetadata{}
-		if err := proto.Unmarshal(metadataValue, kafkaMetadata); err != nil {
-			logger.Panicf("[channel: %s] Ledger may be corrupted:"+
-				"cannot unmarshal orderer metadata in most recent block", chainID)
+func getOffsets(metadataValue []byte, reset bool, chainID string) (persisted int64, processed int64, resubmitted int64) {
+	switch reset {
+	case true:
+		// We decrement the persisted value by -1 because the consumer increments first, then fetches
+		return sarama.OffsetNewest - 1, int64(0), int64(0)
+	default:
+		if metadataValue != nil {
+			// Extract orderer-related metadata from the tip of the ledger first
+			kafkaMetadata := &ab.KafkaMetadata{}
+			if err := proto.Unmarshal(metadataValue, kafkaMetadata); err != nil {
+				logger.Panicf("[channel: %s] Ledger may be corrupted:"+
+					"cannot unmarshal orderer metadata in most recent block", chainID)
+			}
+			return kafkaMetadata.LastOffsetPersisted,
+				kafkaMetadata.LastOriginalOffsetProcessed,
+				kafkaMetadata.LastResubmittedConfigOffset
 		}
-		return kafkaMetadata.LastOffsetPersisted,
-			kafkaMetadata.LastOriginalOffsetProcessed,
-			kafkaMetadata.LastResubmittedConfigOffset
+		// See note on decrementing above
+		return sarama.OffsetOldest - 1, int64(0), int64(0)
 	}
-	return sarama.OffsetOldest - 1, int64(0), int64(0) // default
 }
 
 func newConnectMessage() *ab.KafkaMessage {

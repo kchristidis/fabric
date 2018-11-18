@@ -114,10 +114,10 @@ export CGO_CFLAGS=" "
 EOF
 
 # Set our shell prompt to something less ugly than the default from packer
-# Also make it so that it cd's the user to the fabric dir upon logging in
+# Also make it so that it cd's the user to the Fabric dir upon logging in
 cat <<EOF >> /home/vagrant/.bashrc
 PS1="\u@hyperledger-devenv:$DEVENV_REVISION:\w$ "
-cd $GOPATH/src/github.com/kchristidis/exp2/
+cd $GOPATH/src/github.com/kchristidis/island/
 EOF
 
 # Finally, remove our warning so the user knows this was successful

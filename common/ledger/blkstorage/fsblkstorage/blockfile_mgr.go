@@ -464,6 +464,7 @@ func (mgr *blockfileMgr) retrieveBlockByNumber(blockNum uint64) (*common.Block, 
 
 	loc, err := mgr.index.getBlockLocByBlockNum(blockNum)
 	if err != nil {
+		fmt.Println("============= this is the call that fails #9 =============")
 		return nil, err
 	}
 	return mgr.fetchBlock(loc)

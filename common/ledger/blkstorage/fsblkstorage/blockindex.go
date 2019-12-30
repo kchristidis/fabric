@@ -229,6 +229,7 @@ func (index *blockIndex) getBlockLocByBlockNum(blockNum uint64) (*fileLocPointer
 	}
 	b, err := index.db.Get(constructBlockNumKey(blockNum))
 	if err != nil {
+		fmt.Println("============= this is the call that fails #1 =============")
 		return nil, err
 	}
 	if b == nil {
@@ -388,17 +389,20 @@ func (flp *fileLocPointer) unmarshal(b []byte) error {
 	buffer := proto.NewBuffer(b)
 	i, e := buffer.DecodeVarint()
 	if e != nil {
+		fmt.Println("============= this is the call that fails #2 =============")
 		return e
 	}
 	flp.fileSuffixNum = int(i)
 
 	i, e = buffer.DecodeVarint()
 	if e != nil {
+		fmt.Println("============= this is the call that fails #3 =============")
 		return e
 	}
 	flp.offset = int(i)
 	i, e = buffer.DecodeVarint()
 	if e != nil {
+		fmt.Println("============= this is the call that fails #4 =============")
 		return e
 	}
 	flp.bytesLength = int(i)
